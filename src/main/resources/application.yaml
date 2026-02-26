@@ -2,12 +2,14 @@ spring:
   application:
     name: biblioteca-api
 
+  # Configuração de persistência com PostgreSQL
   datasource:
     url: jdbc:postgresql://localhost:5432/biblioteca_db
     username: user_desafio
     password: password_desafio
     driver-class-name: org.postgresql.Driver
 
+  # Configurações do Hibernate/JPA para ambiente de desenvolvimento
   jpa:
     hibernate:
       ddl-auto: update
@@ -17,11 +19,10 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+  # Formatação de datas no JSON
   jackson:
     serialization:
-      # Alterado para o nome exato do Enum (Screaming Snake Case)
-      # para evitar falhas de binding no ambiente Linux do GitHub Actions.
-      WRITE_DATES_AS_TIMESTAMPS: false
+      write-dates-as-timestamps: false
 
 logging:
   level:
