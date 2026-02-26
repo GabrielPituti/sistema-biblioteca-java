@@ -28,19 +28,20 @@ public class EmprestimoService {
 
     @Transactional
     public EmprestimoResponseDTO realizarEmprestimo(EmprestimoRequestDTO dto) {
-        log.info("Iniciando processo de locação: livro={}, usuario={}", dto.livroId(), dto.usuarioId());
+        log.info("Processando empréstimo: livro={}, usuario={}", dto.livroId(), dto.usuarioId());
 
         Livro livro = livroService.buscarPorId(dto.livroId());
         Usuario usuario = usuarioService.buscarPorId(dto.usuarioId());
 
-        // Verificação de disponibilidade com trava de segurança de negócio
-        boolean livroJaEmprestado = emprestimoRepository.findAll().stream()
+        // Regra: Um livro só pode ter um empréstimo ATIVO por vez.
+        boolean livroOcupado = emprestimoRepository.findAll().stream()
                 .anyMatch(e -> e.getLivro().getId().equals(livro.getId())
                         && e.getStatus() == StatusEmprestimo.ATIVO);
 
-        if (livroJaEmprestado) {
-            log.warn("Tentativa de empréstimo negada: livro ID {} já possui locação ativa", livro.getId());
-            throw new RuntimeException("Este exemplar não está disponível no momento.");
+        if (livroOcupado) {
+            log.warn("Livro ID {} já possui empréstimo ativo.", livro.getId());
+            // MENSAGEM EXATA PARA O TESTE PASSAR:
+            throw new RuntimeException("Este livro já possui um empréstimo ativo.");
         }
 
         Emprestimo emprestimo = new Emprestimo();
@@ -49,10 +50,7 @@ public class EmprestimoService {
         emprestimo.setDataEmprestimo(LocalDate.now());
         emprestimo.setStatus(StatusEmprestimo.ATIVO);
 
-        Emprestimo salvo = emprestimoRepository.save(emprestimo);
-        log.info("Empréstimo ID {} registrado com sucesso", salvo.getId());
-
-        return EmprestimoResponseDTO.fromEntity(salvo);
+        return EmprestimoResponseDTO.fromEntity(emprestimoRepository.save(emprestimo));
     }
 
     @Transactional
@@ -61,19 +59,19 @@ public class EmprestimoService {
                 .orElseThrow(() -> new RuntimeException("Registro de empréstimo não localizado."));
 
         if (StatusEmprestimo.DEVOLVIDO.equals(emprestimo.getStatus())) {
-            throw new RuntimeException("Este livro já foi devolvido anteriormente.");
+            // MENSAGEM EXATA PARA O TESTE PASSAR:
+            throw new RuntimeException("Este empréstimo já consta como devolvido no sistema.");
         }
 
         emprestimo.setDataDevolucao(LocalDate.now());
         emprestimo.setStatus(StatusEmprestimo.DEVOLVIDO);
 
-        log.info("Devolução processada para o empréstimo ID {}", id);
+        log.info("Livro '{}' devolvido.", emprestimo.getLivro().getTitulo());
         return EmprestimoResponseDTO.fromEntity(emprestimoRepository.save(emprestimo));
     }
 
     @Transactional(readOnly = true)
     public List<LivroResponseDTO> recomendarLivros(Long usuarioId) {
-        // Lógica de recomendação baseada em afinidade por categoria
         List<Emprestimo> historico = emprestimoRepository.findAll().stream()
                 .filter(e -> e.getUsuario().getId().equals(usuarioId))
                 .toList();
@@ -94,8 +92,7 @@ public class EmprestimoService {
 
     @Transactional(readOnly = true)
     public List<EmprestimoResponseDTO> listarTodos() {
-        return emprestimoRepository.findAll()
-                .stream()
+        return emprestimoRepository.findAll().stream()
                 .map(EmprestimoResponseDTO::fromEntity)
                 .toList();
     }
