@@ -13,6 +13,7 @@ import java.util.List;
  * * Permite a busca de obras em fontes externas para auxiliar no
  * preenchimento do acervo local.
  */
+@CrossOrigin
 @RestController
 @RequestMapping("/api/google-books")
 @RequiredArgsConstructor

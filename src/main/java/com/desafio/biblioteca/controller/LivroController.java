@@ -17,6 +17,7 @@ import java.util.List;
  * LivroRequestDTO sejam validadas antes da lógica de negócio ser executada,
  * retornando 400 Bad Request automaticamente em caso de erro.
  */
+@CrossOrigin
 @RestController
 @RequestMapping("/api/livros")
 @RequiredArgsConstructor

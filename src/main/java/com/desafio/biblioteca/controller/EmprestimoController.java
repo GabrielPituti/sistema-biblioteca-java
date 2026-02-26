@@ -15,6 +15,7 @@ import java.util.List;
 /**
  * Interface REST para operações de movimentação de acervo e inteligência de recomendação.
  */
+@CrossOrigin
 @RestController
 @RequestMapping("/api/emprestimos")
 @RequiredArgsConstructor
