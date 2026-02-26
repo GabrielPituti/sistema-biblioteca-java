@@ -16,11 +16,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Serviço responsável por gerenciar o ciclo de vida de empréstimos e o motor de recomendações.
+ * Serviço responsável por orquestrar o ciclo de vida de empréstimos e o motor de recomendações.
  *
- * Esta implementação centraliza as validações de disponibilidade de acervo e utiliza
- * Java Streams para processamento em memória de categorias e filtragem de sugestões,
- * garantindo desacoplamento entre as regras de negócio e a persistência.
+ * Esta implementação foca no desacoplamento entre a persistência e a regra de negócio,
+ * utilizando processamento em memória via Java Streams para garantir a flexibilidade
+ * exigida nos critérios de recomendação por categoria.
  */
 @Service
 @RequiredArgsConstructor
@@ -32,14 +32,15 @@ public class EmprestimoService {
     private final LivroRepository livroRepository;
 
     /**
-     * Registra um novo empréstimo no sistema após validar a disponibilidade da obra.
+     * Registra um novo empréstimo validando a disponibilidade imediata do exemplar.
      *
-     * A validação de disponibilidade é feita verificando a existência de empréstimos
-     * com status ATIVO para o livro solicitado, impedindo duplicidade de locação.
+     * A restrição de "um empréstimo ativo por vez" é verificada em tempo de execução,
+     * garantindo que livros já alocados não possam ser associados a novos usuários
+     * até que o status seja alterado para DEVOLVIDO.
      *
-     * @param dto Dados de entrada contendo IDs de usuário e livro.
-     * @return Dados do empréstimo persistido.
-     * @throws RuntimeException Caso o livro já esteja emprestado.
+     * @param dto Contém as referências de ID para Usuário e Livro.
+     * @return Representação do empréstimo persistido.
+     * @throws RuntimeException Caso o livro solicitado já possua um empréstimo com status ATIVO.
      */
     @Transactional
     public EmprestimoResponseDTO realizarEmprestimo(EmprestimoRequestDTO dto) {
@@ -64,14 +65,14 @@ public class EmprestimoService {
     }
 
     /**
-     * Motor de Recomendação Baseado em Histórico de Categorias.
+     * Motor de Recomendação Baseado em Categorias do Histórico.
      *
-     * O algoritmo identifica as categorias de interesse do usuário através de seu
-     * histórico de empréstimos e sugere novas obras do acervo que pertençam a estas
-     * categorias e que ainda não tenham sido lidas pelo usuário.
+     * O algoritmo analisa as categorias das obras previamente consumidas pelo usuário
+     * para sugerir novos títulos do mesmo gênero que ainda não constam em seu histórico
+     * de empréstimos, otimizando a descoberta de novos conteúdos.
      *
-     * @param usuarioId Identificador único do usuário.
-     * @return Lista de livros recomendados convertidos em DTO.
+     * @param usuarioId Identificador único do usuário para cruzamento de dados.
+     * @return Coleção de DTOs representando as obras sugeridas.
      */
     @Transactional(readOnly = true)
     public List<LivroResponseDTO> recomendarLivros(Long usuarioId) {

@@ -13,10 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Interface de entrada para operações de empréstimo e recomendações.
- * * Justificativa: Centraliza as operações de movimentação do acervo.
- * O endpoint de recomendações utiliza o ID do usuário para fornecer
- * sugestões personalizadas, agregando valor à experiência do cliente.
+ * Interface REST para operações de movimentação de acervo e inteligência de recomendação.
  */
 @RestController
 @RequestMapping("/api/emprestimos")
@@ -25,11 +22,17 @@ public class EmprestimoController {
 
     private final EmprestimoService emprestimoService;
 
+    /**
+     * Endpoint para abertura de novos empréstimos.
+     */
     @PostMapping
     public ResponseEntity<EmprestimoResponseDTO> criar(@RequestBody @Valid EmprestimoRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(emprestimoService.realizarEmprestimo(dto));
     }
 
+    /**
+     * Recupera sugestões de livros baseadas no perfil de consumo do usuário.
+     */
     @GetMapping("/recomendacoes/{usuarioId}")
     public ResponseEntity<List<LivroResponseDTO>> recomendar(@PathVariable Long usuarioId) {
         return ResponseEntity.ok(emprestimoService.recomendarLivros(usuarioId));
