@@ -1,3 +1,30 @@
 spring:
   application:
-    name: biblioteca
+    name: biblioteca-api
+
+  # Configuração de persistência com PostgreSQL
+  datasource:
+    url: jdbc:postgresql://localhost:5432/biblioteca_db
+    username: user_desafio
+    password: password_desafio
+    driver-class-name: org.postgresql.Driver
+
+  # Configurações do Hibernate/JPA para ambiente de desenvolvimento
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # Formatação de datas no JSON para evitar arrays numéricos
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
