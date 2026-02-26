@@ -12,10 +12,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Gerencia as regras de negócio para Usuários.
- * * Justificativa: O uso de @Transactional assegura a atomicidade das operações.
- * A utilização de Java Streams para conversão de entidades em DTOs mantém o
- * código declarativo e alinhado com as práticas modernas do Java 21.
+ * Gerencia as regras de negócio e persistência para a entidade Usuario.
+ * * Esta implementação utiliza o padrão Service para isolar a lógica de
+ * mapeamento entre DTOs e Entidades, garantindo que a camada de controle
+ * não possua acoplamento direto com a infraestrutura de dados.
  */
 @Service
 @RequiredArgsConstructor
@@ -33,20 +33,20 @@ public class UsuarioService {
     @Transactional(readOnly = true)
     public Usuario buscarPorId(Long id) {
         return usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com o ID: " + id));
     }
 
     @Transactional
     public UsuarioResponseDTO salvar(UsuarioRequestDTO dto) {
         Usuario usuario = new Usuario();
-        atualizarDados(usuario, dto);
+        mapearDtoParaEntidade(usuario, dto);
         return UsuarioResponseDTO.fromEntity(usuarioRepository.save(usuario));
     }
 
     @Transactional
     public UsuarioResponseDTO atualizar(Long id, UsuarioRequestDTO dto) {
         Usuario usuario = buscarPorId(id);
-        atualizarDados(usuario, dto);
+        mapearDtoParaEntidade(usuario, dto);
         return UsuarioResponseDTO.fromEntity(usuarioRepository.save(usuario));
     }
 
@@ -57,11 +57,11 @@ public class UsuarioService {
     }
 
     /**
-     * Centraliza a lógica de mapeamento de dados do DTO para a Entidade.
-     * * Justificativa: Evita a duplicação de lógica entre os métodos de
-     * criação e atualização, facilitando a manutenção futura do modelo.
+     * Centraliza a lógica de transferência de dados do DTO para o modelo de domínio.
+     * * @param usuario Instância da entidade a ser populada.
+     * @param dto Objeto de transferência com os novos dados.
      */
-    private void atualizarDados(Usuario usuario, UsuarioRequestDTO dto) {
+    private void mapearDtoParaEntidade(Usuario usuario, UsuarioRequestDTO dto) {
         usuario.setNome(dto.nome());
         usuario.setEmail(dto.email());
         usuario.setDataCadastro(dto.dataCadastro());
