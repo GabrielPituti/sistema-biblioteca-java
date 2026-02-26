@@ -65,6 +65,30 @@ public class EmprestimoService {
     }
 
     /**
+     * Registra a devolução de um exemplar e atualiza o estado do empréstimo.
+     * * Este método encerra o ciclo de vida de um empréstimo ativo, permitindo que a obra
+     * fique disponível para novas locações e atualizando o histórico para o sistema de recomendações.
+     *
+     * @param id Identificador único do empréstimo.
+     * @return DTO com os dados atualizados da devolução.
+     * @throws RuntimeException Caso o empréstimo não exista ou já tenha sido devolvido.
+     */
+    @Transactional
+    public EmprestimoResponseDTO devolverLivro(Long id) {
+        Emprestimo emprestimo = emprestimoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Empréstimo não encontrado com o ID: " + id));
+
+        if (emprestimo.getStatus() == StatusEmprestimo.DEVOLVIDO) {
+            throw new RuntimeException("Este empréstimo já consta como devolvido no sistema.");
+        }
+
+        emprestimo.setDataDevolucao(LocalDate.now());
+        emprestimo.setStatus(StatusEmprestimo.DEVOLVIDO);
+
+        return EmprestimoResponseDTO.fromEntity(emprestimoRepository.save(emprestimo));
+    }
+
+    /**
      * Motor de Recomendação Baseado em Categorias do Histórico.
      *
      * O algoritmo analisa as categorias das obras previamente consumidas pelo usuário

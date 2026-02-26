@@ -31,6 +31,16 @@ public class EmprestimoController {
     }
 
     /**
+     * Endpoint para atualização de empréstimo (Devolução de Livro).
+     * * @param id Identificador do empréstimo a ser encerrado.
+     * @return Dados do empréstimo com status atualizado.
+     */
+    @PutMapping("/{id}/devolver")
+    public ResponseEntity<EmprestimoResponseDTO> devolver(@PathVariable Long id) {
+        return ResponseEntity.ok(emprestimoService.devolverLivro(id));
+    }
+
+    /**
      * Recupera sugestões de livros baseadas no perfil de consumo do usuário.
      */
     @GetMapping("/recomendacoes/{usuarioId}")
