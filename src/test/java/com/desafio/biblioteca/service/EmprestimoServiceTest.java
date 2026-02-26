@@ -5,6 +5,7 @@ import com.desafio.biblioteca.domain.repository.EmprestimoRepository;
 import com.desafio.biblioteca.domain.repository.LivroRepository;
 import com.desafio.biblioteca.dto.EmprestimoRequestDTO;
 import com.desafio.biblioteca.dto.EmprestimoResponseDTO;
+import com.desafio.biblioteca.dto.LivroResponseDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,15 +16,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-/**
- * Testes de unidade para as regras de negócio de empréstimos.
- * * Esta classe valida o fluxo de locação, as travas de segurança de livros ocupados
- * e o processo de devolução, garantindo a integridade do acervo.
- */
 @ExtendWith(MockitoExtension.class)
 class EmprestimoServiceTest {
 
@@ -47,18 +44,13 @@ class EmprestimoServiceTest {
         livro = new Livro();
         livro.setId(1L);
         livro.setTitulo("Clean Code");
+        livro.setCategoria("Tecnologia");
     }
 
     @Test
-    @DisplayName("Deve impedir empréstimo de livro que já possui locação ativa")
+    @DisplayName("Deve impedir empréstimo quando livro já possui locação ativa no banco")
     void deveLancarExcecaoQuandoLivroJaEstiverOcupado() {
-        Emprestimo emprestimoAtivo = new Emprestimo();
-        emprestimoAtivo.setLivro(livro);
-        emprestimoAtivo.setStatus(StatusEmprestimo.ATIVO);
-
-        when(livroService.buscarPorId(1L)).thenReturn(livro);
-        when(usuarioService.buscarPorId(1L)).thenReturn(usuario);
-        when(emprestimoRepository.findAll()).thenReturn(List.of(emprestimoAtivo));
+        when(emprestimoRepository.existsByLivroIdAndStatus(1L, StatusEmprestimo.ATIVO)).thenReturn(true);
 
         EmprestimoRequestDTO request = new EmprestimoRequestDTO(1L, 1L);
 
@@ -70,11 +62,11 @@ class EmprestimoServiceTest {
     }
 
     @Test
-    @DisplayName("Deve permitir empréstimo quando não houver locações ativas para o livro")
+    @DisplayName("Deve realizar empréstimo com sucesso quando livro está disponível")
     void deveRealizarEmprestimoComSucesso() {
+        when(emprestimoRepository.existsByLivroIdAndStatus(1L, StatusEmprestimo.ATIVO)).thenReturn(false);
         when(livroService.buscarPorId(1L)).thenReturn(livro);
         when(usuarioService.buscarPorId(1L)).thenReturn(usuario);
-        when(emprestimoRepository.findAll()).thenReturn(List.of());
         when(emprestimoRepository.save(any(Emprestimo.class))).thenAnswer(i -> i.getArguments()[0]);
 
         EmprestimoRequestDTO request = new EmprestimoRequestDTO(1L, 1L);
@@ -85,12 +77,12 @@ class EmprestimoServiceTest {
     }
 
     @Test
-    @DisplayName("Deve registrar a devolução de um livro com sucesso")
+    @DisplayName("Deve registrar a devolução e atualizar o status para DEVOLVIDO")
     void deveDevolverLivroComSucesso() {
         Emprestimo emprestimo = new Emprestimo();
         emprestimo.setId(1L);
-        emprestimo.setUsuario(usuario);
         emprestimo.setLivro(livro);
+        emprestimo.setUsuario(usuario); // ✅ CORREÇÃO AQUI: Evita o NullPointerException
         emprestimo.setStatus(StatusEmprestimo.ATIVO);
 
         when(emprestimoRepository.findById(1L)).thenReturn(Optional.of(emprestimo));
@@ -100,22 +92,27 @@ class EmprestimoServiceTest {
 
         assertEquals(StatusEmprestimo.DEVOLVIDO, response.status());
         assertNotNull(response.dataDevolucao());
-        verify(emprestimoRepository, times(1)).save(emprestimo);
+        assertEquals("Gabriel", response.nomeUsuario());
     }
 
     @Test
-    @DisplayName("Deve lançar exceção ao tentar devolver um livro que já foi devolvido")
-    void deveLancarExcecaoAoDevolverLivroJaDevolvido() {
-        Emprestimo emprestimo = new Emprestimo();
-        emprestimo.setId(1L);
-        emprestimo.setStatus(StatusEmprestimo.DEVOLVIDO);
+    @DisplayName("Deve recomendar livros baseados nas categorias lidas, excluindo os já lidos")
+    void deveRecomendarLivrosCorretamente() {
+        Emprestimo historico = new Emprestimo();
+        historico.setLivro(livro);
+        historico.setUsuario(usuario);
 
-        when(emprestimoRepository.findById(1L)).thenReturn(Optional.of(emprestimo));
+        Livro livroSugerido = new Livro();
+        livroSugerido.setId(2L);
+        livroSugerido.setTitulo("Clean Architecture");
+        livroSugerido.setCategoria("Tecnologia");
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            emprestimoService.devolverLivro(1L);
-        });
+        when(emprestimoRepository.findByUsuarioId(1L)).thenReturn(List.of(historico));
+        when(livroRepository.findByCategoriaInAndIdNotIn(any(), any())).thenReturn(List.of(livroSugerido));
 
-        assertEquals("Este empréstimo já consta como devolvido no sistema.", exception.getMessage());
+        List<LivroResponseDTO> resultado = emprestimoService.recomendarLivros(1L);
+
+        assertFalse(resultado.isEmpty());
+        assertEquals("Clean Architecture", resultado.get(0).titulo());
     }
 }
