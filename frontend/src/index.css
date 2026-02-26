@@ -1,20 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+@import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+  font-family: 'Inter', sans-serif;
+}
 
 body {
   margin: 0;
-  background-color: #020617;
+  background-color: #020617; /* Slate 950 */
   color: #f1f5f9;
-  font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Scrollbar para combinar com o tema escuro */
+/* Scrollbar customizada premium */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
   background: #020617;
@@ -27,8 +28,9 @@ body {
   background: #334155;
 }
 
-.view-enter {
-  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* Animações de transição */
+.fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
 }
 
 @keyframes fadeIn {

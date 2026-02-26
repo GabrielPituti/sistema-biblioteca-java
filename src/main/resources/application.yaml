@@ -2,14 +2,14 @@ spring:
   application:
     name: biblioteca-api
 
-  # Configuração de persistência com PostgreSQL
+  # Persistência de Dados (PostgreSQL em Container)
   datasource:
     url: jdbc:postgresql://localhost:5432/biblioteca_db
     username: user_desafio
     password: password_desafio
     driver-class-name: org.postgresql.Driver
 
-  # Configurações do Hibernate/JPA para ambiente de desenvolvimento
+  # Configurações de ORM/JPA
   jpa:
     hibernate:
       ddl-auto: update
@@ -19,12 +19,22 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  # Formatação de datas no JSON
+  # Serialização de datas (ISO-8601)
   jackson:
     serialization:
       write-dates-as-timestamps: false
 
+# Integração com APIs Externas
+google:
+  books:
+    api:
+      # A chave é lida de uma variável de ambiente.
+      # Se não existir, o sistema inicializa com valor vazio sem quebrar o contexto.
+      key: ${GOOGLE_BOOKS_API_KEY:}
+
+# Monitoramento e Rastreabilidade
 logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.desafio.biblioteca: INFO
