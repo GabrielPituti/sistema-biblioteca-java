@@ -30,16 +30,41 @@ public class UsuarioService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public Usuario buscarPorId(Long id) {
+        return usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+    }
+
     @Transactional
     public UsuarioResponseDTO salvar(UsuarioRequestDTO dto) {
         Usuario usuario = new Usuario();
+        atualizarDados(usuario, dto);
+        return UsuarioResponseDTO.fromEntity(usuarioRepository.save(usuario));
+    }
+
+    @Transactional
+    public UsuarioResponseDTO atualizar(Long id, UsuarioRequestDTO dto) {
+        Usuario usuario = buscarPorId(id);
+        atualizarDados(usuario, dto);
+        return UsuarioResponseDTO.fromEntity(usuarioRepository.save(usuario));
+    }
+
+    @Transactional
+    public void deletar(Long id) {
+        Usuario usuario = buscarPorId(id);
+        usuarioRepository.delete(usuario);
+    }
+
+    /**
+     * Centraliza a lógica de mapeamento de dados do DTO para a Entidade.
+     * * Justificativa: Evita a duplicação de lógica entre os métodos de
+     * criação e atualização, facilitando a manutenção futura do modelo.
+     */
+    private void atualizarDados(Usuario usuario, UsuarioRequestDTO dto) {
         usuario.setNome(dto.nome());
         usuario.setEmail(dto.email());
         usuario.setDataCadastro(dto.dataCadastro());
         usuario.setTelefone(dto.telefone());
-
-        return UsuarioResponseDTO.fromEntity(usuarioRepository.save(usuario));
     }
-
-    // Futuros métodos de Update e Delete aqui
 }
