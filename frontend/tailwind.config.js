@@ -7,7 +7,6 @@ export default {
     theme: {
         extend: {
             colors: {
-                // Tons customizados para o layout Dark Premium
                 slate: {
                     950: '#020617',
                 }

@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
 
 body {
   margin: 0;
@@ -12,7 +12,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Customização da barra de rolagem para combinar com o tema escuro */
+/* Scrollbar para combinar com o tema escuro */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -27,7 +27,6 @@ body {
   background: #334155;
 }
 
-/* Classe para animação suave de entrada das telas */
 .view-enter {
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
