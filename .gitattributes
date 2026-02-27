@@ -1,7 +1,9 @@
 /mvnw text eol=lf
 *.cmd text eol=crlf
 
-# Ignorar arquivos gerados automaticamente nas estatisticas de linguagem
-frontend/package-lock.json linguist-generated
-frontend/package.json linguist-generated
-frontend/dist/** linguist-vendored
+# Forcar o GitHub a ignorar TUDO que pesa e nao eh codigo seu
+*.json linguist-generated=true
+frontend/package-lock.json linguist-generated=true
+frontend/dist/** linguist-vendored=true
+frontend/node_modules/** linguist-vendored=true
+frontend/.vite/** linguist-vendored=true
