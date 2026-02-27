@@ -1,75 +1,49 @@
-Sistema de Gerenciamento de Biblioteca
+Sistema de Gestao de Biblioteca Elotech
 
-Este projeto consiste em uma solução para gestão de acervo bibliotecário e controle de usuários, desenvolvida como parte do processo seletivo da Elotech. A aplicação engloba desde operações fundamentais de cadastro até um motor de recomendação baseado no histórico de locações.
+Solucao desenvolvida para o gerenciamento de acervo literario, controle de membros e processamento de emprestimos com motor de recomendacao inteligente.
 
 Arquitetura e Tecnologias
 
-O ecossistema foi construído utilizando as seguintes tecnologias:
+O projeto utiliza uma pilha tecnologica moderna focada em performance e seguranca:
 
-Backend: Java 21 com Spring Boot 3.4.
+Backend: Java 21 com Spring Boot 3.4.2.
 
-Persistência: Spring Data JPA e Hibernate.
+Persistencia: Spring Data JPA e PostgreSQL.
 
-Banco de Dados: PostgreSQL 15 rodando em container Docker.
+Frontend: React com Vite e Tailwind CSS v4.
 
-Frontend: React com Vite e Tailwind CSS.
+Observabilidade: Spring Actuator e Documentacao Swagger OpenAPI.
 
-Testes: JUnit 5 e Mockito para validação de regras de negócio.
+Testes: JUnit 5 e Mockito para validacao de regras de negocio.
 
-Integração: Google Books API para busca externa de títulos.
+Decisoes Tecnicas
 
-Decisões Técnicas
+Durante o desenvolvimento, foram aplicadas as seguintes praticas de engenharia:
 
-Durante o desenvolvimento, priorizei a manutenibilidade e a segurança dos dados:
+Protecao contra Race Conditions: A validacao de disponibilidade de livros e realizada em nivel de banco de dados e camada de servico, garantindo que um exemplar possua apenas um emprestimo ativo.
 
-Imutabilidade com Records: Todos os DTOs foram implementados utilizando Java Records, garantindo que os dados que trafegam entre as camadas não sofram mutações inesperadas.
+Otimizacao de Consultas: O motor de recomendacao utiliza queries especificas para filtragem de categorias, evitando o carregamento de grandes volumes de dados para a memoria da aplicacao.
 
-Processamento com Streams: O algoritmo de recomendação e as filtragens de negócio utilizam a API de Streams do Java 21, o que permite um código mais declarativo e expressivo.
+Padronizacao de Contratos: Implementacao de GlobalExceptionHandler para tratamento unificado de excecoes e retorno de mensagens amigaveis em formato JSON.
 
-Encapsulamento de Domínio: As entidades JPA são protegidas por uma camada de serviço robusta, evitando que a lógica de banco de dados vaze para os controladores REST.
+Resiliencia: Integracao com a API do Google Books com tratamento de limites de quota e erros de comunicacao assincrona no frontend.
 
-Tratamento de Exceções: Foi implementado um manipulador global (GlobalExceptionHandler) para interceptar erros de negócio e validações de campo, retornando respostas padronizadas ao frontend.
+Instrucoes de Execucao
 
-CORS e Segurança: Os controllers estão configurados para permitir a comunicação segura com o frontend React.
+Infraestrutura
 
-Regras de Negócio Implementadas
-
-Disponibilidade de Livro: O sistema impede a criação de um novo empréstimo caso o livro já possua um registro com status 'ATIVO'.
-
-Histórico de Leitura: O motor de sugestões analisa as categorias dos livros já devolvidos ou em posse do usuário para recomendar títulos semelhantes do acervo que ele ainda não leu.
-
-Busca Externa: Através da integração com o Google Books, o administrador pode pesquisar títulos por palavra-chave e importá-los diretamente para a base de dados local.
-
-Como Executar
-
-Pré-requisitos
-
-Docker e Docker Compose.
-
-JDK 21.
-
-Node.js instalado.
-
-Passo 1: Banco de Dados
-
-Na raiz do projeto, suba o container do banco:
-
+Certifique-se de que o Docker esteja em execucao e inicie o banco de dados:
 docker-compose up -d
 
+Backend
 
-Passo 2: Backend Java
-
-Execute a aplicação via sua IDE ou terminal:
-
+Execute a aplicacao utilizando o Maven Wrapper:
 ./mvnw spring-boot:run
+A documentacao da API estara disponivel em: http://localhost:8080/swagger-ui.html
 
+Frontend
 
-Passo 3: Frontend React
-
-Acesse a pasta frontend, instale as dependências e inicie o servidor:
-
+Acesse a pasta frontend e inicie o servidor de desenvolvimento:
+cd frontend
 npm install
 npm run dev
-
-
-Desenvolvido por Gabriel Pituti.
