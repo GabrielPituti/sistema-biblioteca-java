@@ -5,13 +5,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * Definição de Beans globais para injeção de dependência gerenciada pelo Spring.
+ * Configuracoes de infraestrutura e definicao de beans gerenciados.
  */
 @Configuration
 public class AppConfig {
 
     /**
-     * Provê uma instância compartilhada de RestTemplate.
+     * Expoe o RestTemplate como bean para permitir injecao de dependencia e mocking em testes.
      */
     @Bean
     public RestTemplate restTemplate() {

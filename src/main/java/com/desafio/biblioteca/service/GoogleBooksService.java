@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Integração externa com a Google Books API para descoberta de obras.
+ * Integracao com provedor externo para catalogacao automatica de obras.
  */
 @Slf4j
 @Service
@@ -30,11 +30,14 @@ public class GoogleBooksService {
 
     public List<LivroResponseDTO> buscarLivrosExternos(String query) {
         try {
-            String url = UriComponentsBuilder.fromHttpUrl(BASE_URL)
-                    .queryParam("q", query)
-                    .queryParam("key", apiKey)
-                    .toUriString();
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(BASE_URL)
+                    .queryParam("q", query);
 
+            if (apiKey != null && !apiKey.isBlank()) {
+                builder.queryParam("key", apiKey);
+            }
+
+            String url = builder.toUriString();
             GoogleBookDTO response = restTemplate.getForObject(url, GoogleBookDTO.class);
 
             if (response == null || response.items() == null) {
@@ -42,18 +45,24 @@ public class GoogleBooksService {
             }
 
             return response.items().stream()
-                    .map(item -> new LivroResponseDTO(
-                            null,
-                            item.volumeInfo().title(),
-                            item.volumeInfo().authors() != null ? String.join(", ", item.volumeInfo().authors()) : "Autor Desconhecido",
-                            item.volumeInfo().industryIdentifiers() != null ? item.volumeInfo().industryIdentifiers().get(0).identifier() : "N/A",
-                            null,
-                            item.volumeInfo().categories() != null ? item.volumeInfo().categories().get(0) : "Geral"
-                    ))
+                    .map(this::mapearParaDTO)
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            log.error("Falha na comunicação com Google Books: {}", e.getMessage());
+            log.error("Falha na integracao externa: {}", e.getMessage());
             return Collections.emptyList();
         }
+    }
+
+    private LivroResponseDTO mapearParaDTO(GoogleBookDTO.Item item) {
+        var info = item.volumeInfo();
+        String autores = info.authors() != null ? String.join(", ", info.authors()) : "Autor Desconhecido";
+        String isbn = (info.industryIdentifiers() != null && !info.industryIdentifiers().isEmpty())
+                ? info.industryIdentifiers().get(0).identifier()
+                : "N/A";
+        String categoria = (info.categories() != null && !info.categories().isEmpty())
+                ? info.categories().get(0)
+                : "Geral";
+
+        return new LivroResponseDTO(null, info.title(), autores, isbn, null, categoria);
     }
 }

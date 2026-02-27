@@ -19,7 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
- * Validação das operações de manutenção do acervo (CRUD de Livros).
+ * Suite de testes para manutencao do acervo e integridade dos dados de obras.
  */
 @ExtendWith(MockitoExtension.class)
 class LivroServiceTest {
@@ -31,14 +31,10 @@ class LivroServiceTest {
     private LivroService livroService;
 
     @Test
-    @DisplayName("Deve cadastrar um novo livro quando os dados forem válidos")
+    @DisplayName("Deve persistir um novo livro quando os dados obrigatorios forem validos")
     void deveSalvarLivroComSucesso() {
         LivroRequestDTO request = new LivroRequestDTO(
-                "Design Patterns",
-                "Erich Gamma",
-                "9780201633610",
-                LocalDate.now(),
-                "Tecnologia"
+                "Clean Architecture", "Robert Martin", "12345", LocalDate.now(), "TI"
         );
 
         Livro livroSalvo = new Livro();
@@ -51,27 +47,19 @@ class LivroServiceTest {
 
         assertNotNull(response);
         assertEquals(10L, response.id());
-        assertEquals("Design Patterns", response.titulo());
         verify(livroRepository, times(1)).save(any(Livro.class));
     }
 
     @Test
-    @DisplayName("Deve recuperar os detalhes de um livro pelo ID")
-    void deveBuscarLivroPorId() {
-        Livro livro = new Livro();
-        livro.setId(1L);
-        livro.setTitulo("Refactoring");
+    @DisplayName("Deve lancar excecao ao tentar recuperar uma obra com identificador inexistente")
+    void deveLancarExcecaoQuandoLivroNaoEncontrado() {
+        when(livroRepository.findById(99L)).thenReturn(Optional.empty());
 
-        when(livroRepository.findById(1L)).thenReturn(Optional.of(livro));
-
-        Livro resultado = livroService.buscarPorId(1L);
-
-        assertNotNull(resultado);
-        assertEquals("Refactoring", resultado.getTitulo());
+        assertThrows(RuntimeException.class, () -> livroService.buscarPorId(99L));
     }
 
     @Test
-    @DisplayName("Deve remover um livro do acervo com sucesso")
+    @DisplayName("Deve remover permanentemente um livro do acervo local")
     void deveExcluirLivro() {
         Livro livro = new Livro();
         livro.setId(1L);

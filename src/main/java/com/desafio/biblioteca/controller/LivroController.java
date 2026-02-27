@@ -5,17 +5,13 @@ import com.desafio.biblioteca.dto.LivroResponseDTO;
 import com.desafio.biblioteca.service.LivroService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 /**
- * Endpoint REST para gestão do acervo.
- * * Justificativa: A anotação @Valid garante que as restrições impostas no
- * LivroRequestDTO sejam validadas antes da lógica de negócio ser executada,
- * retornando 400 Bad Request automaticamente em caso de erro.
+ * Endpoint de gestao do acervo local da biblioteca.
  */
 @CrossOrigin
 @RestController
@@ -31,8 +27,13 @@ public class LivroController {
     }
 
     @PostMapping
-    public ResponseEntity<LivroResponseDTO> criar(@RequestBody @Valid LivroRequestDTO dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(livroService.salvar(dto));
+    public ResponseEntity<LivroResponseDTO> salvar(@RequestBody @Valid LivroRequestDTO dto) {
+        return ResponseEntity.status(201).body(livroService.salvar(dto));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<LivroResponseDTO> buscar(@PathVariable Long id) {
+        return ResponseEntity.ok(LivroResponseDTO.fromEntity(livroService.buscarPorId(id)));
     }
 
     @PutMapping("/{id}")
@@ -41,7 +42,7 @@ public class LivroController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
         livroService.deletar(id);
         return ResponseEntity.noContent().build();
     }
