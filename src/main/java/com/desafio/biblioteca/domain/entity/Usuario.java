@@ -10,12 +10,6 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
-/**
- * Representa o cliente da biblioteca.
- * * Justificativa: A utilização de validações Bean Validation (Jakarta) garante
- * que a integridade dos dados seja verificada antes da persistência,
- * evitando estados inconsistentes na base de dados conforme solicitado no desafio.
- */
 @Entity
 @Table(name = "usuarios")
 @Getter

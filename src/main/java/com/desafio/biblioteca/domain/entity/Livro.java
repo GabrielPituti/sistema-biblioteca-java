@@ -7,12 +7,6 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
-/**
- * Representa uma obra literária disponível para empréstimo.
- * * Justificativa: O mapeamento de campos não nulos reflete a obrigatoriedade
- * do modelo de dados. A categoria é mantida como String para permitir a
- * flexibilidade na lógica de recomendação baseada em agrupamentos textuais.
- */
 @Entity
 @Table(name = "livros")
 @Getter
