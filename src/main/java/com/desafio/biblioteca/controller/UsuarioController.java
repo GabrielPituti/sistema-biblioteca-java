@@ -11,9 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * Exposição da API REST para operações de gestão de usuários.
- */
+@CrossOrigin
 @RestController
 @RequestMapping("/api/usuarios")
 @RequiredArgsConstructor

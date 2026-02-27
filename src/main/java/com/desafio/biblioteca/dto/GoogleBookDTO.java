@@ -26,7 +26,7 @@ public record GoogleBookDTO(
             String publishedDate,
             String description,
             List<IndustryIdentifier> industryIdentifiers,
-            List<String> categories // Corrigido para List<String> para bater com a API do Google
+            List<String> categories
     ) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)

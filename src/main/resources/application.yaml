@@ -1,30 +1,58 @@
 spring:
   application:
-    name: biblioteca-api
+    name: elotech-biblioteca-api
 
-  # Configuração de persistência com PostgreSQL
   datasource:
     url: jdbc:postgresql://localhost:5432/biblioteca_db
     username: user_desafio
     password: password_desafio
     driver-class-name: org.postgresql.Driver
 
-  # Configurações do Hibernate/JPA para ambiente de desenvolvimento
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+    open-in-view: false
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  # Formatação de datas no JSON
   jackson:
     serialization:
       write-dates-as-timestamps: false
 
+google:
+  books:
+    api:
+      key: ${GOOGLE_BOOKS_API_KEY:}
+
 logging:
   level:
     org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.desafio.biblioteca: INFO
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    display-request-duration: true
+    operations-sorter: method
+  api-docs:
+    path: /v3/api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: Sistema de Gestão de Biblioteca
+    version: 1.0.0
+    description: Desafio Técnico Elotech - Backend Java 21 + Spring Boot 3.4

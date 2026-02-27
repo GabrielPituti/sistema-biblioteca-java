@@ -1,13 +1,16 @@
 package com.desafio.biblioteca.domain.repository;
 
 import com.desafio.biblioteca.domain.entity.Emprestimo;
+import com.desafio.biblioteca.domain.entity.StatusEmprestimo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-/**
- * Abstração para operações de banco de dados da entidade Emprestimo.
- * * Essencial para o controle de inventário e validação de disponibilidade
- * de títulos, permitindo rastrear o histórico de locações de cada usuário.
- */
+import java.util.List;
+
 @Repository
-public interface EmprestimoRepository extends JpaRepository<Emprestimo, Long> { }
+public interface EmprestimoRepository extends JpaRepository<Emprestimo, Long> {
+
+    boolean existsByLivroIdAndStatus(Long livroId, StatusEmprestimo status);
+
+    List<Emprestimo> findByUsuarioId(Long usuarioId);
+}
