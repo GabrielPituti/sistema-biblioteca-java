@@ -5,9 +5,6 @@ import java.util.List;
 
 /**
  * Mapeamento da resposta da Google Books API.
- * * Este Record utiliza aninhamento para representar a estrutura hierárquica do JSON
- * retornado pelo Google, mantendo o encapsulamento dentro de um único arquivo
- * para facilitar a manutenção da integração externa.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record GoogleBookDTO(

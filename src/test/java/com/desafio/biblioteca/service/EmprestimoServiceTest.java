@@ -56,9 +56,8 @@ class EmprestimoServiceTest {
 
         EmprestimoRequestDTO request = new EmprestimoRequestDTO(1L, 1L);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            emprestimoService.realizarEmprestimo(request);
-        });
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                emprestimoService.realizarEmprestimo(request));
 
         assertEquals("Este livro já possui um empréstimo ativo.", exception.getMessage());
     }
@@ -98,11 +97,29 @@ class EmprestimoServiceTest {
     }
 
     @Test
+    @DisplayName("Deve impedir devolucao de emprestimo que ja foi encerrado")
+    void deveLancarExcecaoAoDevolverEmprestimoJaDevolvido() {
+        Emprestimo emprestimo = new Emprestimo();
+        emprestimo.setId(1L);
+        emprestimo.setLivro(livro);
+        emprestimo.setUsuario(usuario);
+        emprestimo.setStatus(StatusEmprestimo.DEVOLVIDO);
+
+        when(emprestimoRepository.findById(1L)).thenReturn(Optional.of(emprestimo));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                emprestimoService.devolverLivro(1L));
+
+        assertTrue(ex.getMessage().contains("já consta como devolvido"));
+    }
+
+    @Test
     @DisplayName("Deve lancar excecao ao tentar devolver um emprestimo com identificador inexistente")
     void deveLancarExcecaoAoDevolverEmprestimoInexistente() {
         when(emprestimoRepository.findById(99L)).thenReturn(Optional.empty());
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> emprestimoService.devolverLivro(99L));
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                emprestimoService.devolverLivro(99L));
 
         assertTrue(ex.getMessage().contains("não localizado"));
     }

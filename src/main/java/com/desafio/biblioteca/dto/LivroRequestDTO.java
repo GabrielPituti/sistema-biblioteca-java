@@ -2,17 +2,22 @@ package com.desafio.biblioteca.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-
 import java.time.LocalDate;
 
-/**
- * Record para entrada de dados de Livros.
- */
 public record LivroRequestDTO(
-        @NotBlank String titulo,
-        @NotBlank String autor,
-        @NotBlank String isbn,
-        @NotNull LocalDate dataPublicacao,
-        @NotBlank String categoria
+        @NotBlank(message = "O título é obrigatório")
+        String titulo,
+
+        @NotBlank(message = "O autor é obrigatório")
+        String autor,
+
+        @NotBlank(message = "O ISBN é obrigatório")
+        String isbn,
+
+        @NotNull(message = "A data de publicação é obrigatória")
+        LocalDate dataPublicacao,
+
+        @NotBlank(message = "A categoria é obrigatória")
+        String categoria
 ) {
 }

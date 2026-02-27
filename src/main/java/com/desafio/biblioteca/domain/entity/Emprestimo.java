@@ -8,12 +8,6 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
-/**
- * Gerencia o vínculo entre um usuário e um livro por um período determinado.
- * * Justificativa: O uso de FetchType.LAZY nas associações Many-to-One evita o
- * carregamento desnecessário de objetos pesados do banco, otimizando a
- * performance de consultas que listam apenas os dados básicos do empréstimo.
- */
 @Entity
 @Table(name = "emprestimos")
 @Getter
