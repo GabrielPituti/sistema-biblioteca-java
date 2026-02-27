@@ -7,52 +7,53 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Integração externa com a Google Books API para descoberta de obras.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class GoogleBooksService {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
-    @Value("${google.books.api.key:}") // Injetado via variável de ambiente ou properties
+    @Value("${google.books.api.key:}")
     private String apiKey;
 
-    private static final String BASE_URL = "https://www.googleapis.com/books/v1/volumes?q=";
+    private static final String BASE_URL = "https://www.googleapis.com/books/v1/volumes";
 
-    public List<LivroResponseDTO> buscarLivrosExternos(String titulo) {
-        // A chave não é obrigatória para buscas simples, mas se existir, deve ser usada via variável de ambiente
-        String url = BASE_URL + titulo + (apiKey.isEmpty() ? "" : "&key=" + apiKey);
-
+    public List<LivroResponseDTO> buscarLivrosExternos(String query) {
         try {
+            String url = UriComponentsBuilder.fromHttpUrl(BASE_URL)
+                    .queryParam("q", query)
+                    .queryParam("key", apiKey)
+                    .toUriString();
+
             GoogleBookDTO response = restTemplate.getForObject(url, GoogleBookDTO.class);
 
-            if (response == null || response.items() == null) return new ArrayList<>();
+            if (response == null || response.items() == null) {
+                return Collections.emptyList();
+            }
 
             return response.items().stream()
-                    .map(item -> {
-                        var info = item.volumeInfo();
-                        String isbn = (info.industryIdentifiers() != null && !info.industryIdentifiers().isEmpty())
-                                ? info.industryIdentifiers().get(0).identifier()
-                                : "N/A";
-
-                        return new LivroResponseDTO(
-                                null,
-                                info.title(),
-                                (info.authors() != null) ? String.join(", ", info.authors()) : "Autor Desconhecido",
-                                isbn,
-                                null,
-                                (info.categories() != null && !info.categories().isEmpty()) ? info.categories().get(0) : "Geral"
-                        );
-                    })
+                    .map(item -> new LivroResponseDTO(
+                            null,
+                            item.volumeInfo().title(),
+                            item.volumeInfo().authors() != null ? String.join(", ", item.volumeInfo().authors()) : "Autor Desconhecido",
+                            item.volumeInfo().industryIdentifiers() != null ? item.volumeInfo().industryIdentifiers().get(0).identifier() : "N/A",
+                            null,
+                            item.volumeInfo().categories() != null ? item.volumeInfo().categories().get(0) : "Geral"
+                    ))
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Falha na comunicação com Google Books: {}", e.getMessage());
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
     }
 }

@@ -1,40 +1,58 @@
 spring:
   application:
-    name: biblioteca-api
+    name: elotech-biblioteca-api
 
-  # Persistência de Dados (PostgreSQL em Container)
   datasource:
     url: jdbc:postgresql://localhost:5432/biblioteca_db
     username: user_desafio
     password: password_desafio
     driver-class-name: org.postgresql.Driver
 
-  # Configurações de ORM/JPA
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+    open-in-view: false
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  # Serialização de datas (ISO-8601)
   jackson:
     serialization:
       write-dates-as-timestamps: false
 
-# Integração com APIs Externas
 google:
   books:
     api:
-      # A chave é lida de uma variável de ambiente.
-      # Se não existir, o sistema inicializa com valor vazio sem quebrar o contexto.
       key: ${GOOGLE_BOOKS_API_KEY:}
 
-# Monitoramento e Rastreabilidade
 logging:
   level:
     org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     com.desafio.biblioteca: INFO
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    display-request-duration: true
+    operations-sorter: method
+  api-docs:
+    path: /v3/api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: Sistema de Gestão de Biblioteca
+    version: 1.0.0
+    description: Desafio Técnico Elotech - Backend Java 21 + Spring Boot 3.4

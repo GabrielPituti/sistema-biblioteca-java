@@ -2,13 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
     Users, Book, Search, Library, LayoutDashboard, Globe,
     BookOpen, AlertCircle, CheckCircle,
-    Sparkles, RotateCcw, BookmarkPlus
+    Sparkles, RotateCcw, BookmarkPlus, ArrowRight
 } from 'lucide-react';
 
 const API_BASE = "http://localhost:8080/api";
 
 /**
- * Componente principal com as nomenclaturas atualizadas para Painel e Sugestões.
+ * Componente principal da interface administrativa ELOTECH BIBLIOTECA.
  */
 export default function App() {
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -38,7 +38,7 @@ export default function App() {
             if (bRes.ok) setBooks(await bRes.json());
             if (lRes && lRes.ok) setLoans(await lRes.json());
         } catch {
-            notify("Erro na comunicação com a API Elotech.", "error");
+            notify("Erro de sincronização com o servidor.", "error");
         }
     }, [notify]);
 
@@ -61,10 +61,10 @@ export default function App() {
                 setActiveTab('locacoes');
             } else {
                 const data = await res.json();
-                notify(data.message || "Falha ao registrar empréstimo.", "error");
+                notify(data.message || "Não foi possível realizar o empréstimo.", "error");
             }
         } catch {
-            notify("Erro crítico no servidor.", "error");
+            notify("Falha crítica no servidor.", "error");
         }
     };
 
@@ -72,7 +72,7 @@ export default function App() {
         try {
             const res = await fetch(`${API_BASE}/emprestimos/${loanId}/devolver`, { method: 'PUT' });
             if (res.ok) {
-                notify("Obra devolvida ao acervo.");
+                notify("Devolução processada.");
                 void loadData();
             }
         } catch {
@@ -88,12 +88,12 @@ export default function App() {
             if (res.ok) {
                 setGoogleBooks(await res.json());
             } else if (res.status === 429) {
-                notify("Limite de buscas do Google excedido. Tente mais tarde.", "error");
+                notify("Limite de buscas excedido. Tente novamente em breve.", "error");
             } else {
-                notify("Nenhuma obra localizada.", "error");
+                notify("Obras não encontradas.", "error");
             }
         } catch {
-            notify("Falha na integração externa.", "error");
+            notify("Erro na API externa.", "error");
         } finally {
             setLoading(false);
         }
@@ -107,11 +107,11 @@ export default function App() {
                 body: JSON.stringify(book)
             });
             if (res.ok) {
-                notify(`"${book.titulo}" importado.`);
+                notify(`"${book.titulo}" adicionado ao acervo.`);
                 void loadData();
             }
         } catch {
-            notify("Erro na persistência local.", "error");
+            notify("Erro ao importar obra.", "error");
         }
     };
 
@@ -119,20 +119,22 @@ export default function App() {
         try {
             const res = await fetch(`${API_BASE}/emprestimos/recomendacoes/${user.id}`);
             if (res.ok) {
-                setRecommendations(await res.json());
+                const data = await res.json();
+                setRecommendations(data);
                 setSelectedUser(user);
                 setActiveTab('recomendacoes');
+                if (data.length === 0) notify("Sem histórico para sugestões.", "info");
             }
         } catch {
-            notify("Erro no motor de IA.", "error");
+            notify("Erro ao buscar sugestões.", "error");
         }
     };
 
     return (
-        <div className="flex min-h-screen bg-[#020617] text-slate-100 font-sans antialiased selection:bg-indigo-500/30">
+        <div className="flex min-h-screen bg-[#020617] text-slate-100 font-sans antialiased">
             <aside className="w-72 bg-slate-900/50 border-r border-slate-800 p-8 flex flex-col h-screen sticky top-0 backdrop-blur-xl">
                 <div className="flex items-center gap-3 text-indigo-500 mb-12">
-                    <Library size={38} strokeWidth={2.5} />
+                    <Library size={38} />
                     <h1 className="text-xl font-bold text-white uppercase tracking-tighter leading-none italic">ELOTECH<br/>BIBLIOTECA</h1>
                 </div>
                 <nav className="space-y-3 flex-1">
@@ -144,12 +146,12 @@ export default function App() {
                 </nav>
             </aside>
 
-            <main className="flex-1 p-12 overflow-y-auto">
+            <main className="flex-1 p-12 overflow-y-auto relative">
                 {toast.text && (
                     <div className={`fixed top-8 right-8 p-5 rounded-2xl border shadow-2xl flex items-center gap-4 z-50 fade-in ${
                         toast.type === 'error' ? "bg-red-950 border-red-800" : "bg-indigo-950 border-indigo-800"
                     }`}>
-                        {toast.type === 'error' ? <AlertCircle /> : <CheckCircle />}
+                        {toast.type === 'error' ? <AlertCircle size={24} /> : <CheckCircle size={24} />}
                         <span className="text-sm font-bold tracking-tight">{toast.text}</span>
                     </div>
                 )}
@@ -158,27 +160,27 @@ export default function App() {
                     <div className="space-y-12 fade-in">
                         <h2 className="text-6xl font-black text-white tracking-tighter leading-none">PAINEL</h2>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                            <StatCard title="Livros no Catálogo" value={books.length} icon={Book} color="text-indigo-500" />
-                            <StatCard title="Membros Registrados" value={users.length} icon={Users} color="text-emerald-500" />
+                            <StatCard title="Obras no Acervo" value={books.length} icon={Book} color="text-indigo-500" />
+                            <StatCard title="Membros Ativos" value={users.length} icon={Users} color="text-emerald-500" />
                         </div>
                     </div>
                 )}
 
                 {activeTab === 'usuarios' && (
                     <div className="space-y-8 fade-in">
-                        <h2 className="text-4xl font-bold uppercase tracking-tight">Gestão de Membros</h2>
+                        <h2 className="text-4xl font-bold uppercase">Membros</h2>
                         <div className="bg-slate-900 border border-slate-800 rounded-4xl overflow-hidden shadow-2xl">
                             <table className="w-full text-left">
                                 <thead className="bg-slate-800/40 text-slate-500 text-[10px] uppercase font-bold tracking-widest">
-                                <tr><th className="px-10 py-6">Nome</th><th className="px-10 py-6 text-right">Inteligência</th></tr>
+                                <tr><th className="px-10 py-6">Nome</th><th className="px-10 py-6 text-right">Ação</th></tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-800/50">
                                 {users.map(u => (
                                     <tr key={u.id} className="hover:bg-slate-800/20 transition-colors group">
-                                        <td className="px-10 py-6 font-bold text-slate-200">{u.nome}</td>
-                                        <td className="px-10 py-6 text-right flex gap-2 justify-end">
-                                            <button onClick={() => { setSelectedUser(u); setActiveTab('livros'); }} className="text-indigo-400 text-[10px] font-black uppercase bg-indigo-500/10 px-4 py-2.5 rounded-xl hover:bg-indigo-600 hover:text-white transition-all cursor-pointer">Emprestar</button>
-                                            <button onClick={() => { void fetchRecommendations(u); }} className="text-emerald-400 text-[10px] font-black uppercase bg-emerald-500/10 px-4 py-2.5 rounded-xl hover:bg-emerald-600 hover:text-white transition-all cursor-pointer">Sugestões</button>
+                                        <td className="px-10 py-6 font-bold">{u.nome}</td>
+                                        <td className="px-10 py-6 text-right flex gap-3 justify-end">
+                                            <button onClick={() => { setSelectedUser(u); setActiveTab('livros'); }} className="text-indigo-400 text-[10px] font-black uppercase bg-indigo-500/10 px-4 py-2 rounded-xl hover:bg-indigo-600 hover:text-white transition-all cursor-pointer">Emprestar</button>
+                                            <button onClick={() => { void fetchRecommendations(u); }} className="text-emerald-400 text-[10px] font-black uppercase bg-emerald-500/10 px-4 py-2 rounded-xl hover:bg-emerald-600 hover:text-white transition-all cursor-pointer">Sugestões</button>
                                         </td>
                                     </tr>
                                 ))}
@@ -192,16 +194,16 @@ export default function App() {
                     <div className="space-y-10 fade-in">
                         <div className="flex justify-between items-end border-b border-slate-800 pb-8">
                             <h2 className="text-4xl font-bold uppercase">Acervo Local</h2>
-                            {selectedUser && <div className="px-6 py-2 bg-indigo-600/20 rounded-xl text-indigo-400 text-xs font-bold animate-pulse">P/ {selectedUser.nome}</div>}
+                            {selectedUser && <div className="px-6 py-2 bg-indigo-600/20 rounded-xl text-indigo-400 text-xs font-bold animate-pulse uppercase tracking-widest">P/ {selectedUser.nome}</div>}
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             {books.map(b => (
                                 <div key={b.id} className="bg-slate-900 p-8 rounded-4xl border border-slate-800 hover:border-indigo-500/40 transition-all shadow-xl group">
                                     <span className="text-[10px] font-black text-indigo-400 uppercase italic mb-4 block">{b.categoria}</span>
-                                    <h4 className="text-2xl font-bold text-white leading-tight group-hover:text-indigo-400 transition-colors">{b.titulo}</h4>
+                                    <h4 className="text-2xl font-bold text-white leading-tight">{b.titulo}</h4>
                                     <p className="text-slate-500 text-sm mt-1">{b.autor}</p>
                                     <div className="mt-8 pt-6 border-t border-slate-800 flex justify-between items-center">
-                                        <span className="text-[10px] font-mono text-slate-600 uppercase">ISBN {b.isbn}</span>
+                                        <span className="text-[10px] font-mono text-slate-600 uppercase tracking-widest">ISBN {b.isbn}</span>
                                         <button onClick={() => { void handleLoan(b.id, selectedUser?.id); }} className="p-2 rounded-full bg-slate-800 text-slate-400 hover:bg-indigo-600 hover:text-white transition-all cursor-pointer"><BookmarkPlus size={20} /></button>
                                     </div>
                                 </div>
@@ -220,7 +222,7 @@ export default function App() {
                                         <h5 className="font-bold text-white text-xl">{l.tituloLivro}</h5>
                                         <p className="text-xs text-slate-500 uppercase tracking-widest font-black mt-1">Membro: {l.nomeUsuario}</p>
                                     </div>
-                                    <button onClick={() => { void handleReturn(l.id); }} className="flex items-center gap-3 text-[10px] font-black text-amber-400 hover:text-white bg-amber-400/10 px-10 py-5 rounded-2xl border border-amber-400/20 hover:bg-amber-600 transition-all cursor-pointer"><RotateCcw size={16} /> DEVOLVER</button>
+                                    <button onClick={() => { void handleReturn(l.id); }} className="flex items-center gap-3 text-[10px] font-black text-amber-400 hover:text-white bg-amber-400/10 px-10 py-5 rounded-2xl border border-amber-400/20 hover:bg-amber-600 transition-all uppercase tracking-widest cursor-pointer"><RotateCcw size={16} /> DEVOLVER</button>
                                 </div>
                             ))}
                             {loans.filter(l => l.status === 'ATIVO').length === 0 && <div className="p-20 text-center text-slate-800 font-black text-2xl uppercase opacity-20">Sem pendências</div>}
@@ -230,7 +232,7 @@ export default function App() {
 
                 {activeTab === 'google' && (
                     <div className="space-y-12 fade-in">
-                        <h2 className="text-4xl font-bold italic text-white uppercase tracking-tighter">Busca de Obras</h2>
+                        <h2 className="text-4xl font-bold italic text-white uppercase tracking-tighter leading-none">Busca de Obras</h2>
                         <div className="flex gap-4 p-2 bg-slate-900 border border-slate-800 rounded-3xl focus-within:border-indigo-500/50 transition-all shadow-inner">
                             <div className="relative flex-1">
                                 <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-600" size={26} />
@@ -257,7 +259,7 @@ export default function App() {
                         <header className="flex justify-between items-end border-b border-slate-800 pb-10">
                             <div>
                                 <h2 className="text-5xl font-black text-white tracking-tighter flex items-center gap-5 leading-none uppercase">SUGESTÕES: {selectedUser?.nome} <Sparkles className="text-amber-400" /></h2>
-                                <p className="text-slate-500 mt-4 text-xl font-medium italic">Baseado nas categorias consumidas.</p>
+                                <p className="text-slate-500 mt-4 text-xl font-medium italic">Analise de afinidade Elotech.</p>
                             </div>
                             <button onClick={() => setActiveTab('usuarios')} className="text-slate-400 hover:text-white text-sm font-bold border-b border-slate-800 pb-1 transition-colors cursor-pointer">Voltar</button>
                         </header>
@@ -280,24 +282,24 @@ export default function App() {
 }
 
 function MenuBtn(props) {
-    const IconComponent = props.icon;
+    const LucideIcon = props.icon;
     const isActive = props.active === props.id;
     return (
         <button onClick={() => props.setter(props.id)} className={`w-full flex items-center gap-4 px-5 py-5 rounded-2xl transition-all duration-300 cursor-pointer ${isActive ? "bg-indigo-600 text-white shadow-xl shadow-indigo-900/40 font-bold scale-[1.02]" : "text-slate-500 hover:bg-slate-800/50 hover:text-slate-200"}`}>
-            <IconComponent size={20} /> <span className="text-sm tracking-wide">{props.label}</span>
+            <LucideIcon size={20} /> <span className="text-sm tracking-wide">{props.label}</span>
         </button>
     );
 }
 
 function StatCard(props) {
-    const IconComponent = props.icon;
+    const LucideIcon = props.icon;
     return (
         <div className="bg-slate-900 p-12 rounded-4xl border border-slate-800 flex justify-between items-center group shadow-2xl relative overflow-hidden">
             <div className="relative z-10">
                 <p className="text-slate-500 text-[10px] font-black uppercase mb-4 tracking-widest">{props.title}</p>
                 <p className="text-8xl font-black text-white leading-none tabular-nums">{props.value}</p>
             </div>
-            <IconComponent size={160} className={`${props.color} opacity-[0.03] absolute -right-10 -bottom-10 group-hover:scale-110 transition-all duration-1000`} />
+            <LucideIcon size={160} className={`${props.color} opacity-[0.03] absolute -right-10 -bottom-10 group-hover:scale-110 transition-all duration-1000`} />
         </div>
     );
 }
